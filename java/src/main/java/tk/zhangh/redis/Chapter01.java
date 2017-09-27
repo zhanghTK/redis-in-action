@@ -15,7 +15,7 @@ public class Chapter01 {
     private static final int ARTICLES_PER_PAGE = 25;
 
     /*=======================================文章投票====================================================================
-    使用5个缓存结构：
+    使用8个缓存结构：
     1. 文章Id缓存(article:)，字符串
     2. 文章缓存（article:ARTICLE_ID），哈希
     3. 文章投票人缓存(article:ARTICLE_ID)，集合
@@ -31,7 +31,8 @@ public class Chapter01 {
      */
     public void articleVote(Jedis conn, String user, String article) {
         long cutoff = (System.currentTimeMillis() / 1000) - ONE_WEEK_IN_SECONDS;  // 超过一周禁止投票
-        if (conn.zscore("time:", article) == null ||conn.zscore("time:", article) < cutoff) {
+        if (conn.zscore("time:", article) == null || // 未找到文章发布时间
+                conn.zscore("time:", article) < cutoff) {  // 发布时间超过一周
             return;
         }
 
@@ -108,6 +109,7 @@ public class Chapter01 {
 
     /**
      * 获取分组文章，根据分数排序分页获得
+     *
      * @param conn
      * @param group
      * @param page
@@ -124,15 +126,11 @@ public class Chapter01 {
         String key = order + group;  // 时间/分数排序分组缓存
         if (!conn.exists(key)) {
             // 创建临时排序分组
+            // 合并分组集合（group:GROUP）和排序集合（score: / time:），取两个集合的大值
             ZParams params = new ZParams().aggregate(ZParams.Aggregate.MAX);
             conn.zinterstore(key, params, "group:" + group, order);
             conn.expire(key, 60);
         }
         return getArticles(conn, page, key);
-    }
-
-    public static void main(String[] args) {
-        Chapter01 app = new Chapter01();
-        app.postArticle(new Jedis("zh-home.tk"), "", "", "");
     }
 }

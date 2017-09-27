@@ -3,13 +3,16 @@ package tk.zhangh.redis;
 import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
+import static tk.zhangh.redis.Config.HOST;
+import static tk.zhangh.redis.Config.PORT;
+
 /**
  * Created by ZhangHao on 2017/9/26.
  */
 public class Chapter01Test {
 
     private static final Chapter01 APP = new Chapter01();
-    private static final Jedis JEDIS = new Jedis("zh-home.tk", 6379);
+    private static final Jedis JEDIS = new Jedis(HOST, PORT);
 
     private static final String USER = "zh-user";
     private static final String ARTICLE = "zh-article";
